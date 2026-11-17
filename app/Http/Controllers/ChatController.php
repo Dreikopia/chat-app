@@ -15,14 +15,29 @@ class ChatController extends Controller
         $currentUser = $request->user();
 
         $messages = Message::query()
+            ->with([
+                'sender:id,name,username,avatar_path',
+                'recipient:id,name,username,avatar_path',
+            ])
             ->where(function ($query) use ($currentUser) {
                 $query->where('sender_id', $currentUser->id)
                     ->orWhere('recipient_id', $currentUser->id);
             })
+            ->latest()
             ->get();
+
+        $conversations = $messages
+            ->map(function (Message $message) use ($currentUser) {
+                return $message->sender_id === $currentUser->id
+                ? $message->recipient
+                : $message->sender;
+            })
+            ->unique('id')
+            ->values();
 
         return Inertia::render('Chat/Index', [
             'messages' => $messages,
+            'conversations' => $conversations,
         ]);
     }
 
