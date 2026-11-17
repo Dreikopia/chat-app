@@ -6,6 +6,7 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { edit } from '@/routes/profile';
 import type { Auth } from '@/types';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,7 +28,7 @@ export default function Profile() {
                 <Heading
                     variant="small"
                     title="Profile"
-                    description="Update your name and email address"
+                    description="Update your profile information"
                 />
 
                 <Form
@@ -80,12 +81,10 @@ export default function Profile() {
                                 <Label htmlFor="bio">Bio</Label>
 
                                 <Textarea
-                                    id="bibioo"
+                                    id="bio"
                                     className="mt-1 block w-full"
-                                    defaultValue={auth.user.bio}
+                                    defaultValue={auth.user.bio ?? ''}
                                     name="bio"
-                                    required
-                                    autoComplete="name"
                                     placeholder="Enter a bio"
                                 />
 

@@ -34,6 +34,11 @@ trait ProfileValidationRules
         return ['required', 'string', 'max:50'];
     }
 
+    /**
+     * Get the validation rules used to validate usernames.
+     *
+     * @return array<int, Unique|ValidationRule|array<mixed>|string>
+     */
     protected function usernameRules(?int $userId = null): array
     {
         return [
@@ -47,6 +52,11 @@ trait ProfileValidationRules
         ];
     }
 
+    /**
+     * Get the validation rules used to validate bios.
+     *
+     * @return array<int, Unique|ValidationRule|array<mixed>|string>
+     */
     protected function bioRules(): array
     {
         return [

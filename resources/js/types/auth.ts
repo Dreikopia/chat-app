@@ -2,7 +2,11 @@ export type User = {
     id: number;
     name: string;
     username: string;
+<<<<<<< HEAD
     bio: string;
+=======
+    bio: string | null;
+>>>>>>> 90bbd7b (feat: extend profile form with username and bio)
     email: string;
     avatar?: string;
     email_verified_at: string | null;

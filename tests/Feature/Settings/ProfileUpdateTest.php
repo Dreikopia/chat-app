@@ -19,6 +19,8 @@ test('profile information can be updated', function () {
         ->actingAs($user)
         ->patch(route('profile.update'), [
             'name' => 'Test User',
+            'username' => 'testuser',
+            'bio' => 'A short bio.',
             'email' => 'test@example.com',
         ]);
 
@@ -29,8 +31,74 @@ test('profile information can be updated', function () {
     $user->refresh();
 
     expect($user->name)->toBe('Test User');
+    expect($user->username)->toBe('testuser');
+    expect($user->bio)->toBe('A short bio.');
     expect($user->email)->toBe('test@example.com');
     expect($user->email_verified_at)->toBeNull();
+});
+
+test('bio can be left empty', function () {
+    $user = User::factory()->create(['bio' => 'An existing bio.']);
+
+    $response = $this
+        ->actingAs($user)
+        ->patch(route('profile.update'), [
+            'name' => $user->name,
+            'username' => $user->username,
+            'bio' => '',
+            'email' => $user->email,
+        ]);
+
+    $response->assertSessionHasNoErrors();
+
+    expect($user->refresh()->bio)->toBeNull();
+});
+
+test('username must be unique', function () {
+    User::factory()->create(['username' => 'takenuser']);
+
+    $user = User::factory()->create(['username' => 'originaluser']);
+
+    $response = $this
+        ->actingAs($user)
+        ->from(route('profile.edit'))
+        ->patch(route('profile.update'), [
+            'name' => 'Test User',
+            'username' => 'takenuser',
+            'bio' => 'A bio that should survive validation.',
+            'email' => 'test@example.com',
+        ]);
+
+    $response
+        ->assertSessionHasErrors([
+            'username' => 'The username has already been taken.',
+        ])
+        ->assertSessionDoesntHaveErrors(['name', 'bio', 'email'])
+        ->assertRedirect(route('profile.edit'));
+
+    expect($user->refresh()->username)->toBe('originaluser');
+});
+
+test('other profile input is preserved when the username is taken', function () {
+    User::factory()->create(['username' => 'takenuser']);
+
+    $user = User::factory()->create(['username' => 'originaluser']);
+
+    $response = $this
+        ->actingAs($user)
+        ->from(route('profile.edit'))
+        ->patch(route('profile.update'), [
+            'name' => 'Test User',
+            'username' => 'takenuser',
+            'bio' => 'A bio that should survive validation.',
+            'email' => 'test@example.com',
+        ]);
+
+    $response
+        ->assertSessionHasInput('name', 'Test User')
+        ->assertSessionHasInput('bio', 'A bio that should survive validation.')
+        ->assertSessionHasInput('email', 'test@example.com')
+        ->assertSessionHasInput('username', 'takenuser');
 });
 
 test('email is stored in lowercase so the user can still log in', function () {
@@ -40,6 +108,7 @@ test('email is stored in lowercase so the user can still log in', function () {
         ->actingAs($user)
         ->patch(route('profile.update'), [
             'name' => 'Test User',
+            'username' => $user->username,
             'email' => 'Test@Example.com',
         ])
         ->assertSessionHasNoErrors();
@@ -66,6 +135,7 @@ test('email must be unique regardless of case', function () {
         ->from(route('profile.edit'))
         ->patch(route('profile.update'), [
             'name' => 'Test User',
+            'username' => $user->username,
             'email' => 'Taken@Example.com',
         ]);
 
@@ -81,6 +151,7 @@ test('email verification status is unchanged when the email address is unchanged
         ->actingAs($user)
         ->patch(route('profile.update'), [
             'name' => 'Test User',
+            'username' => $user->username,
             'email' => $user->email,
         ]);
 
