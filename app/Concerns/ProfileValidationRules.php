@@ -18,6 +18,8 @@ trait ProfileValidationRules
     {
         return [
             'name' => $this->nameRules(),
+            'username' => $this->usernameRules($userId),
+            'bio' => $this->bioRules(),
             'email' => $this->emailRules($userId),
         ];
     }
@@ -29,7 +31,29 @@ trait ProfileValidationRules
      */
     protected function nameRules(): array
     {
-        return ['required', 'string', 'max:255'];
+        return ['required', 'string', 'max:50'];
+    }
+
+    protected function usernameRules(?int $userId = null): array
+    {
+        return [
+            'required',
+            'string',
+            'min:3',
+            'max:20',
+            $userId === null
+                ? Rule::unique(User::class, 'username')
+                : Rule::unique(User::class, 'username')->ignore($userId),
+        ];
+    }
+
+    protected function bioRules(): array
+    {
+        return [
+            'nullable',
+            'string',
+            'max:160',
+        ];
     }
 
     /**
