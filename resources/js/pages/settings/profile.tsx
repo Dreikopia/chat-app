@@ -9,7 +9,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { edit } from '@/routes/profile';
 import type { Auth } from '@/types';
-import { Textarea } from '@/components/ui/textarea';
 
 type PageProps = {
     auth: Auth;
