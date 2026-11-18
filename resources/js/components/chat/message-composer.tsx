@@ -3,7 +3,6 @@ import React from "react";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
 
-
 type Props = {
     recipientId: number;
 };
