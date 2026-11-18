@@ -23,7 +23,7 @@ test('new users can register', function () {
     ]);
 
     $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect(route('chat.index', absolute: false));
 
     expect(User::where('username', 'testuser')->exists())->toBeTrue();
 });

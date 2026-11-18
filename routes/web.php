@@ -7,12 +7,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return Auth::check()
-        ? redirect()->route('dashboard')
+        ? redirect()->route('chat.index')
         : redirect()->route('login');
 })->name('home');
 
 Route::middleware(['auth'])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
 
     Route::get('/chat', [ChatController::class, 'index'])
         ->name('chat.index');
