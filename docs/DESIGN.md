@@ -1,21 +1,24 @@
 # Design: DM Chat App (minimalist)
 
-Companion to `PRD-dm-chat-app.md`. Requirement IDs (FR, BR, NFR) point back to that file. Stack assumed: React, Tailwind CSS, shadcn/ui (PRD AS-8).
+Companion to `PRD.md` (v1.1). Requirement IDs (FR, BR, NFR) point back to that file. Stack: React, Tailwind CSS, shadcn/ui (PRD AS-8).
 
 ## 1. Intent
 
-- **Subject:** private one-to-one conversations.
+- **Subject:** private one-to-one conversations between friends.
 - **Audience:** you and the friends who test it.
-- **Primary job:** read and write messages with no friction.
+- **Primary job:** agree to connect, then read and write messages with no friction.
 - **One idea:** the page is quiet text on a quiet background. Only _your_ messages carry a fill. Everything else is whitespace.
+- **The door:** a conversation starts with a friend request, not with a message to a stranger. Relationship state is written in words first and color second.
 
 ## 2. Principles
 
 1. **Text first.** No avatars beside messages, no names above them. In a two-person chat, the side (right is you, left is them) says who spoke.
-2. **One accent, four jobs.** The teal accent appears only on the primary button, the focus ring, the unread badge, and the online dot.
-3. **Whitespace instead of boxes.** Rows and sections are separated by space. The only line in the app is a 1 px divider between the sidebar and the conversation, above the composer, and between profile sections.
+2. **One accent, four jobs.** The teal accent appears only on the primary button, the focus ring, the count badge, and the online dot.
+3. **Whitespace instead of boxes.** Rows and sections are separated by space. The only lines in the app are a 1 px divider between the sidebar and the conversation, above the composer, and between profile or Friends page sections.
 4. **No decoration.** No gradients, no shadows, no card grids, no icons that repeat a label.
 5. **Plain words.** Sentence case, active verbs, and the same name for an action everywhere ("Delete" is "Delete" in the menu and in the dialog).
+6. **Relationship before conversation.** A new chat starts with an accepted friend request. Friend state is always text ("Add friend", "Requested", "Friends"), never color alone.
+7. **One primary action per section.** On the Friends page the only filled button is "Find people"; row actions are secondary or text buttons.
 
 ## 3. Tokens
 
@@ -30,7 +33,7 @@ All text pairs below meet a 4.5:1 contrast ratio.
 | Line    | `#E6E8EC` | The three dividers, input borders                                                  |
 | Ink     | `#20242B` | Main text                                                                          |
 | Quiet   | `#5F6673` | Times, helper text, placeholders, deleted placeholder                              |
-| Accent  | `#2F6F6A` | Primary button, focus ring, unread badge, online dot                               |
+| Accent  | `#2F6F6A` | Primary button, focus ring, count badge, online dot                                |
 | Mine    | `#E6F0EF` | Fill behind your own messages, hover and selected rows, avatar initials background |
 | Error   | `#B42318` | Error text, invalid input border, "Delete" button                                  |
 
@@ -58,7 +61,7 @@ Check contrast again before building dark mode.
 
 | Role                                     | Size / line height                                                          | Weight          |
 | ---------------------------------------- | --------------------------------------------------------------------------- | --------------- |
-| Page title (Profile)                     | 24 / 32                                                                     | 600             |
+| Page title (Profile, Friends)            | 24 / 32                                                                     | 600             |
 | Section title, chat name, sidebar title  | 20 / 28 for "Chats" and "Profile"; 16 / 24 for chat name and section titles | 600             |
 | Message and input text                   | 16 / 24                                                                     | 400             |
 | UI text (labels, buttons, sidebar names) | 14 / 20                                                                     | 500             |
@@ -91,11 +94,11 @@ Everything is left-aligned except your own messages, which sit on the right.
 ┌──────────────────┬─────────────────────────────────────────┐
 │ Chats   New chat │ (av) Ana Cruz  @ana_cruz_4821           │
 │                  │      Bio line, one row, truncated       │
-│ (av) Ben Reyes 2 │─────────────────────────────────────────│
-│ (av) Ana Cruz    │                                         │
-│ (av) Carl Dizon  │  Hey, are you free later?               │
-│                  │                              ┌────────┐ │
-│                  │                              │ Yes!   │ │
+│ Friends        2 │─────────────────────────────────────────│
+│                  │                                         │
+│ (av) Ben Reyes 2 │  Hey, are you free later?               │
+│ (av) Ana Cruz    │                              ┌────────┐ │
+│ (av) Carl Dizon  │                              │ Yes!   │ │
 │                  │                              └────────┘ │
 │                  │                                  14:02  │
 │                  │  This message was deleted               │
@@ -112,7 +115,9 @@ Everything is left-aligned except your own messages, which sit on the right.
 ┌──────────────────────┐      ┌──────────────────────┐
 │ Chats      New chat  │      │ ‹ Chats              │
 │                      │      │ (av) Ana Cruz        │
-│ (av) Ben Reyes     2 │      │ @ana_cruz_4821       │
+│ Friends           2  │      │ @ana_cruz_4821       │
+│                      │      │                      │
+│ (av) Ben Reyes     2 │      │                      │
 │ (av) Ana Cruz        │      │──────────────────────│
 │ (av) Carl Dizon      │      │ Hey, are you free?   │
 │                      │      │         ┌──────────┐ │
@@ -142,27 +147,68 @@ Everything is left-aligned except your own messages, which sit on the right.
  [ Save photo ]
 ```
 
+**Friends page:** one centered column, 480 px wide at most, inside the chat sidebar's content pane on desktop and full screen on mobile.
+
+```
+ Friends                                  [ Find people ]
+
+ Requests
+ (av) Ben Reyes    @ben_reyes_2041        [ Accept ]  Decline
+
+ Sent
+ (av) Carl Dizon   @carl_dizon_9182       Cancel request
+
+ ──────────────────────────────────────────────────────
+
+ Your friends
+ (av) Ana Cruz     @ana_cruz_4821         Remove
+ (av) Ben Reyes    @ben_reyes_2041        Remove
+
+ Empty: No friend requests. / No sent requests. / No friends yet. Find people to add.
+```
+
 ## 5. Components
 
 **Sidebar**
 
 - Header: "Chats" (20/28, 600) on the left, "New chat" as a text button on the right.
-- Row: 40 px avatar, name (14/20, 500), unread badge on the right. Row padding 12 / 16. Hover and the open chat use the Mine fill. A chat with unread messages shows its name in 600 weight.
+- Friends row: "Friends" (14/20, 500) with the request count badge on the right, above the chat list. Row padding 12 / 16. Hover and the open page use the Mine fill. It links to `/friends`.
+- Chat row: 40 px avatar, name (14/20, 500), unread badge on the right. Row padding 12 / 16. Hover and the open chat use the Mine fill. A chat with unread messages shows its name in 600 weight.
 - Footer: your avatar and name. It opens a menu with "Edit profile" and "Log out".
-- Empty: "No chats yet. Search for someone to start."
+- Empty: "No chats yet. Find a friend to start."
 
 **Avatar**
 
 - Image, circle. If none, show 1 to 2 initials in Accent on a Mine background.
-- Sizes: 40 (sidebar), 32 (chat header), 96 (profile).
+- Sizes: 40 (sidebar and friends rows), 32 (chat header), 96 (profile).
 
-**Unread badge**
+**Count badge**
 
-- Accent pill, at least 20 px wide, white text 12/16 600. Shows "9+" above 9. Hidden at 0.
+- Accent pill, at least 20 px wide, white text 12/16 600. Shows "9+" above 9. Hidden at 0. Used for unread chats and incoming friend requests.
 
 **Online dot (stretch)**
 
 - 8 px Accent circle at the bottom right of the avatar.
+
+**Friends page**
+
+- Title "Friends" (24/32, 600) on the left, "Find people" as the only primary button on the right.
+- Three sections in order: "Requests", "Sent", "Your friends". Section headings are 16/24, 600, with 8 px below and 32 px between sections. One 1 px Line separates "Sent" from "Your friends".
+- Rows are 40 px high with 12 px vertical padding: 40 px avatar, name (14/20, 500), @username (12/16, Quiet), actions on the right.
+- Requests row: "Accept" as a secondary button, "Decline" as a text button. Sent row: "Cancel request" as a text button. Friends row: "Remove" as a text button in Quiet.
+- Empty states sit left-aligned in Quiet: "No friend requests.", "No sent requests.", "No friends yet. Find people to add."
+- On mobile the page is full screen with the same sections; actions wrap below the name if the row would overflow.
+
+**Find people dialog (shadcn Dialog)**
+
+- Title "Find people". Field "Username" with results directly under it (avatar, name, @username, relationship action).
+- Actions: "Add friend" secondary, "Requested" disabled Quiet text, "Accept" secondary, "Friends" Quiet text.
+- Loading "Loading…"; no match "No one found."; failure "Request not sent. Try again." under the field.
+- Footer: "Close" text button. The result actions are not primary buttons, so the dialog never has more than one filled control.
+
+**Remove friend dialog (shadcn AlertDialog)**
+
+- Title "Remove {Name}?" Text "They'll be removed from your friends list. Your chat history stays." Buttons "Cancel" and "Remove". "Remove" uses the Error fill with white text. Focus starts on "Cancel".
 
 **Chat header**
 
@@ -191,8 +237,9 @@ Everything is left-aligned except your own messages, which sit on the right.
 
 **New chat dialog (shadcn Dialog)**
 
-- Title "New chat". Field "Username" with results listed directly under it (avatar, name, @username, up to 10). Field "Message" (textarea). Buttons "Cancel" and "Start chat".
-- Search with no match: "No one found." Waiting: "Loading…" in Quiet.
+- Title "New chat". Field "Search friends" filters the accepted friends listed directly under it (avatar, name, @username). Field "Message" (textarea). Buttons "Cancel" and "Start chat".
+- No friends yet: "No friends yet. Find people to add." with a "Find people" text button that opens the Find people dialog.
+- Filter with no match: "No friends found." Waiting: "Loading…" in Quiet.
 
 **Delete dialog (shadcn AlertDialog)**
 
@@ -215,7 +262,7 @@ Everything is left-aligned except your own messages, which sit on the right.
 
 **Toasts (Sonner)**
 
-- Bottom center, Surface fill, Ink text, 14/20. Used only for "Profile saved." and "Photo updated."
+- Bottom center, Surface fill, Ink text, 14/20. Used only for "Profile saved.", "Photo updated.", "Friend request sent.", "You're now friends with {Name}.", "Friend request cancelled.", and "{Name} removed from your friends."
 
 **Banners**
 
@@ -227,9 +274,19 @@ Everything is left-aligned except your own messages, which sit on the right.
 | ----------------------------------------- | -------------------------------------------------------------------------------------------- |
 | Sidebar title                             | Chats                                                                                        |
 | Sidebar button                            | New chat                                                                                     |
-| Sidebar empty                             | No chats yet. Search for someone to start.                                                   |
+| Sidebar friends row                       | Friends                                                                                      |
+| Sidebar empty                             | No chats yet. Find a friend to start.                                                        |
 | Sidebar footer menu                       | Edit profile / Log out                                                                       |
-| New chat dialog                           | New chat / Username / Message / Cancel / Start chat                                          |
+| New chat dialog                           | New chat / Search friends / Message / Cancel / Start chat                                    |
+| New chat empty                            | No friends yet. Find people to add.                                                          |
+| New chat no match                         | No friends found.                                                                            |
+| Friends page                              | Friends / Find people / Requests / Sent / Your friends / Accept / Decline / Cancel request / Remove |
+| Friends empty states                      | No friend requests. / No sent requests. / No friends yet. Find people to add.                |
+| Find people dialog                        | Find people / Username / Add friend / Requested / Accept / Friends / Close                   |
+| Find people loading                       | Loading…                                                                                     |
+| Find people no match                      | No one found.                                                                                |
+| Find people failure                       | Request not sent. Try again.                                                                 |
+| Remove friend dialog                      | Remove {Name}? / They'll be removed from your friends list. Your chat history stays. / Cancel / Remove |
 | Search loading                            | Loading…                                                                                     |
 | Search no match                           | No one found.                                                                                |
 | Conversation empty                        | No messages yet. Say hi.                                                                     |
@@ -243,8 +300,10 @@ Everything is left-aligned except your own messages, which sit on the right.
 | Date lines                                | Today / Yesterday / Mon 9 Nov                                                                |
 | Profile page                              | Profile / Details / Name / Username / Bio / Save changes / Photo / Choose image / Save photo |
 | Username helper                           | Lowercase letters, numbers, and underscores.                                                 |
-| Toasts                                    | Profile saved. / Photo updated.                                                              |
+| Toasts                                    | Profile saved. / Photo updated. / Friend request sent. / You're now friends with {Name}. / Friend request cancelled. / {Name} removed from your friends. |
 | Send failed                               | Message not sent. Try again.                                                                 |
+| Friend request failed                     | Request not sent. Try again.                                                                 |
+| Friend action unavailable                 | This request is no longer available.                                                         |
 | Empty message                             | Write a message first.                                                                       |
 | Disconnected                              | Reconnecting…                                                                                |
 | Page-level failure                        | Something went wrong. Try again.                                                             |
@@ -253,22 +312,29 @@ Everything is left-aligned except your own messages, which sit on the right.
 
 ## 7. States
 
-| State        | What the user sees                                                                                                                                   |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Loading      | The words "Loading…" in Quiet. No spinner, no shimmer.                                                                                               |
-| Empty        | The sentence from the copy deck, in Quiet, left-aligned at the top of the empty area, with the "New chat" button below it when the sidebar is empty. |
-| Failed       | A message in Error directly under the control that failed. Typed text is kept.                                                                       |
-| Disconnected | "Reconnecting…" at the top of the conversation pane. Existing messages stay visible.                                                                 |
-| Rate limited | The notice and the disabled, counting-down button described in section 5.                                                                            |
+| State              | What the user sees                                                                                                                                   |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Loading            | The words "Loading…" in Quiet. No spinner, no shimmer.                                                                                               |
+| Empty              | The sentence from the copy deck, in Quiet, left-aligned at the top of the empty area, with the relevant action below it ("New chat" or "Find people"). |
+| Failed             | A message in Error directly under the control that failed. Typed text is kept.                                                                       |
+| Disconnected       | "Reconnecting…" at the top of the conversation pane. Existing messages stay visible.                                                                 |
+| Rate limited       | The notice and the disabled, counting-down button described in section 5.                                                                            |
+| Requested          | The result action reads "Requested" in Quiet and is disabled; the Sent section lists the person with "Cancel request".                               |
+| Request received   | The Friends row badge shows the count; the Requests section shows "Accept" and "Decline".                                                             |
+| Request accepted   | The row leaves Requests, the person appears under Your friends and in New chat, and the toast names them.                                            |
+| Request unavailable | "This request is no longer available." in Error, and the section refreshes from the server.                                                         |
+| Friend removed     | The row leaves Your friends and New chat; the existing chat and messages stay.                                                                        |
 
 ## 8. Accessibility
 
 - Every control works with the keyboard. Focus shows as a 2 px Accent ring with a 2 px offset on every `:focus-visible`.
 - Dialogs trap focus, close on Escape, and return focus to the button that opened them.
 - The message list is a polite live region. New messages and "This message was deleted" are announced as text.
+- The Friends badge and friend request changes are announced politely. Request action labels include the person's name, for example "Accept friend request from Ana Cruz" and "Remove Ana Cruz from your friends".
 - Field errors are linked to their fields so screen readers read them.
-- Color is never the only signal: errors have text, unread has a number, and your messages are also on the right.
+- Color is never the only signal: errors have text, unread has a number, friend state is written as "Add friend", "Requested", "Accept", or "Friends", and your messages are also on the right.
 - Touch targets are at least 40 px high. Text pairs meet 4.5:1 (section 3).
+- The remove-friend dialog starts on "Cancel" and returns focus to the "Remove" trigger when closed.
 - Reduced motion turns off every animation in section 3.
 
 ## 9. shadcn/ui mapping
@@ -298,7 +364,10 @@ The 14 px message radius is the one custom value outside shadcn's `--radius`. Co
 - No bubble tails, gradients, shadows, or card grids.
 - No avatars or names inside the message list, because there are only two people.
 - Your messages are the only filled shape in the app. That is the one memorable thing, and everything near it stays quiet.
+- Friendship is a gate, not a badge. Requests live on one Friends page instead of being mixed into the chat list, so unread messages and relationship state never compete for the same row.
+- Accept and Decline are quiet row actions; "Find people" is the only primary button on the page. A list of filled buttons would look like a dashboard.
+- Removing a friend is not blocking. The row leaves the list, but the existing conversation stays, because the product has no moderation model in v1.
 
 ## 11. Not covered here
 
-Rooms, group avatars, reactions, attachments, and message search are out of scope for v1 (PRD section 17). Login and register pages keep the starter kit's layout and only take the colors, font, and button styles from this file.
+Rooms, group avatars, reactions, attachments, message search, friend suggestions, mutual friends, blocking, and stranger message requests are out of scope for v1 (PRD section 17). Login and register pages keep the starter kit's layout and only take the colors, font, and button styles from this file.
