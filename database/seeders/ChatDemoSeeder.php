@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Friendship;
 use App\Models\Message;
 use App\Models\User;
 use Carbon\CarbonInterface;
@@ -38,7 +39,18 @@ class ChatDemoSeeder extends Seeder
                     sentAt: now()->subMinutes($message['minutes_ago']),
                 );
             }
+
+            $this->acceptedFriendship($john, $partner);
         }
+
+        $ana = $this->demoUser(
+            name: 'Ana Cruz',
+            username: 'anacruz',
+            email: 'ana@test',
+            bio: 'Frontend developer. Always shipping.',
+        );
+
+        $this->pendingFriendRequest($ana, $john);
     }
 
     private function demoUser(
@@ -75,6 +87,50 @@ class ChatDemoSeeder extends Seeder
             'created_at' => $sentAt,
             'updated_at' => $sentAt,
         ])->save();
+    }
+
+    private function acceptedFriendship(User $first, User $second): void
+    {
+        [$requester, $addressee] = $this->orderedPair($first, $second);
+
+        if ($this->friendshipExists($requester, $addressee)) {
+            return;
+        }
+
+        Friendship::factory()
+            ->accepted()
+            ->between($requester, $addressee)
+            ->create();
+    }
+
+    private function pendingFriendRequest(User $requester, User $addressee): void
+    {
+        if ($this->friendshipExists($requester, $addressee)) {
+            return;
+        }
+
+        Friendship::factory()
+            ->pending()
+            ->between($requester, $addressee)
+            ->create();
+    }
+
+    private function friendshipExists(User $requester, User $addressee): bool
+    {
+        return Friendship::query()
+            ->where('requester_id', $requester->id)
+            ->where('addressee_id', $addressee->id)
+            ->exists();
+    }
+
+    /**
+     * @return array{User, User}
+     */
+    private function orderedPair(User $first, User $second): array
+    {
+        return $first->id < $second->id
+            ? [$first, $second]
+            : [$second, $first];
     }
 
     /**

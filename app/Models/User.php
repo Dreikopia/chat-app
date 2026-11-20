@@ -59,4 +59,14 @@ class User extends Authenticatable implements PasskeyUser
     {
         return $this->hasMany(Message::class, 'recipient_id');
     }
+
+    public function sentFriendRequests(): HasMany
+    {
+        return $this->hasMany(Friendship::class, 'requester_id');
+    }
+
+    public function receivedFriendRequests(): HasMany
+    {
+        return $this->hasMany(Friendship::class, 'addressee_id');
+    }
 }
