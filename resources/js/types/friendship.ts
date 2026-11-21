@@ -2,7 +2,6 @@ export type User = {
     id: number;
     name: string;
     username: string;
-    avatar_path: string | null;
 };
 
 export type Friendship = {

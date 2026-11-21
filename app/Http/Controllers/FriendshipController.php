@@ -26,7 +26,7 @@ class FriendshipController extends Controller
             ->latest()
             ->get();
 
-        return Inertia::render('Friends/Index', [
+        return Inertia::render('friends/index', [
             'friends' => $friends,
             'incomingRequests' => $incomingRequests,
             'outgoingRequests' => $outgoingRequests,

@@ -1,6 +1,9 @@
 import { Head } from '@inertiajs/react';
+import FindPeopleDialog from '@/components/friends/find-people-dialog';
 import FriendRow from '@/components/friends/friend-row';
-import { Button } from '@/components/ui/button';
+import IncomingRequestActions from '@/components/friends/incoming-request-actions';
+import OutgoingRequestActions from '@/components/friends/outgoing-request-actions';
+import RemoveFriendDialog from '@/components/friends/remove-friend-dialog';
 import { cn } from '@/lib/utils';
 import type { FriendshipPageProps } from '@/types/friendship';
 
@@ -38,64 +41,54 @@ export default function Index({
                             Friends
                         </h1>
 
-                        <Button type="button">Find people</Button>
+                        <FindPeopleDialog
+                            friends={friends}
+                            incomingRequests={incomingRequests}
+                            outgoingRequests={outgoingRequests}
+                        />
                     </header>
 
                     {incomingRequests.length > 0 && (
                         <section className="mt-10">
                             <SectionHeading
-                                title="Requests"
+                                title="Friend requests"
                                 count={`${incomingRequests.length} pending`}
                             />
 
-                            {incomingRequests.map((request) => (
-                                <FriendRow
-                                    key={request.id}
-                                    friend={request.requester}
-                                >
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
+                            <div className="divide-y divide-border">
+                                {incomingRequests.map((request) => (
+                                    <FriendRow
+                                        key={request.id}
+                                        friend={request.requester}
                                     >
-                                        Accept
-                                    </Button>
-
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        className="text-muted-foreground"
-                                    >
-                                        Decline
-                                    </Button>
-                                </FriendRow>
-                            ))}
+                                        <IncomingRequestActions
+                                            request={request}
+                                        />
+                                    </FriendRow>
+                                ))}
+                            </div>
                         </section>
                     )}
 
                     {outgoingRequests.length > 0 && (
                         <section className="mt-10">
                             <SectionHeading
-                                title="Sent"
+                                title="Sent requests"
                                 count={`${outgoingRequests.length} sent`}
                             />
 
-                            {outgoingRequests.map((request) => (
-                                <FriendRow
-                                    key={request.id}
-                                    friend={request.addressee}
-                                >
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        className="text-muted-foreground"
+                            <div className="divide-y divide-border">
+                                {outgoingRequests.map((request) => (
+                                    <FriendRow
+                                        key={request.id}
+                                        friend={request.addressee}
                                     >
-                                        Cancel request
-                                    </Button>
-                                </FriendRow>
-                            ))}
+                                        <OutgoingRequestActions
+                                            request={request}
+                                        />
+                                    </FriendRow>
+                                ))}
+                            </div>
                         </section>
                     )}
 
@@ -111,18 +104,13 @@ export default function Index({
                         />
 
                         {friends.length > 0 ? (
-                            friends.map((friend) => (
-                                <FriendRow key={friend.id} friend={friend}>
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        className="text-muted-foreground hover:text-foreground"
-                                    >
-                                        Remove
-                                    </Button>
-                                </FriendRow>
-                            ))
+                            <div className="divide-y divide-border">
+                                {friends.map((friend) => (
+                                    <FriendRow key={friend.id} friend={friend}>
+                                        <RemoveFriendDialog friend={friend} />
+                                    </FriendRow>
+                                ))}
+                            </div>
                         ) : (
                             <p className="text-sm text-muted-foreground">
                                 You haven't added any friends yet.
