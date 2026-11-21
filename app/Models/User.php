@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\FriendshipStatus;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -68,5 +70,34 @@ class User extends Authenticatable implements PasskeyUser
     public function receivedFriendRequests(): HasMany
     {
         return $this->hasMany(Friendship::class, 'addressee_id');
+    }
+
+    public function incomingFriendRequests(): HasMany
+    {
+        return $this->receivedFriendRequests()
+            ->where('status', FriendshipStatus::PENDING->value);
+    }
+
+    public function outGoingFriendRequests(): HasMany
+    {
+        return $this->sentFriendRequests()
+            ->where('status', FriendshipStatus::PENDING->value);
+    }
+
+    public function friends(): Builder
+    {
+        return User::query()
+            ->where(function (Builder $query) {
+                $query->whereIn('id', Friendship::query()
+                    ->select('addressee_id')
+                    ->where('requester_id', $this->id)
+                    ->where('status', FriendshipStatus::ACCEPTED->value)
+                )
+                    ->orWhereIn('id', Friendship::query()
+                        ->select('requester_id')
+                        ->where('addressee_id', $this->id)
+                        ->where('status', FriendshipStatus::ACCEPTED->value)
+                    );
+            });
     }
 }
