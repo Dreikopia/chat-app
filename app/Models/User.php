@@ -43,14 +43,11 @@ class User extends Authenticatable implements PasskeyUser
      *
      * @return array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'two_factor_confirmed_at' => 'datetime',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'two_factor_confirmed_at' => 'datetime',
+    ];
 
     public function sentMessages(): HasMany
     {
@@ -78,12 +75,13 @@ class User extends Authenticatable implements PasskeyUser
             ->where('status', FriendshipStatus::PENDING->value);
     }
 
-    public function outGoingFriendRequests(): HasMany
+    public function outgoingFriendRequests(): HasMany
     {
         return $this->sentFriendRequests()
             ->where('status', FriendshipStatus::PENDING->value);
     }
 
+    // a query to find the user friends
     public function friends(): Builder
     {
         return User::query()

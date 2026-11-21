@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\FriendRequestController;
+use App\Http\Controllers\FriendshipController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\UserSearchController;
 use Illuminate\Support\Facades\Auth;
@@ -41,6 +42,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::delete('/friends/{friendship}', [FriendRequestController::class, 'destroy'])
         ->name('friends.destroy');
+
+    Route::get('/friends', [FriendshipController::class, 'index'])
+        ->name('friends.index');
 });
 
 require __DIR__.'/settings.php';
