@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -97,5 +98,31 @@ class User extends Authenticatable implements PasskeyUser
                         ->where('status', FriendshipStatus::ACCEPTED->value)
                     );
             });
+    }
+
+    /**
+     * The distinct users this user has exchanged messages with, newest first.
+     *
+     * @return Collection<int, User>
+     */
+    public function conversations(): Collection
+    {
+        return Message::query()
+            ->with([
+                'sender:id,name,username,avatar_path',
+                'recipient:id,name,username,avatar_path',
+            ])
+            ->where(function (Builder $query) {
+                $query->where('sender_id', $this->id)
+                    ->orWhere('recipient_id', $this->id);
+            })
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->get()
+            ->map(fn (Message $message) => $message->sender_id === $this->id
+                ? $message->recipient
+                : $message->sender)
+            ->unique('id')
+            ->values();
     }
 }

@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Inertia\Inertia;
 
 class ChatController extends Controller
@@ -14,7 +13,7 @@ class ChatController extends Controller
     public function index(Request $request)
     {
         return Inertia::render('chat/index', [
-            'conversations' => $this->conversationsFor($request->user()),
+            'conversations' => $request->user()->conversations(),
             'activeId' => null,
         ]);
     }
@@ -42,34 +41,8 @@ class ChatController extends Controller
         return Inertia::render('chat/show', [
             'user' => $user,
             'messages' => $messages,
-            'conversations' => $this->conversationsFor($currentUser),
+            'conversations' => $currentUser->conversations(),
             'activeId' => $user->id,
         ]);
-    }
-
-    /**
-     * The distinct users the given user has exchanged messages with, newest first.
-     *
-     * @return Collection<int, User>
-     */
-    private function conversationsFor(User $user): Collection
-    {
-        return Message::query()
-            ->with([
-                'sender:id,name,username,avatar_path',
-                'recipient:id,name,username,avatar_path',
-            ])
-            ->where(function ($query) use ($user) {
-                $query->where('sender_id', $user->id)
-                    ->orWhere('recipient_id', $user->id);
-            })
-            ->orderByDesc('created_at')
-            ->orderByDesc('id')
-            ->get()
-            ->map(fn (Message $message) => $message->sender_id === $user->id
-                ? $message->recipient
-                : $message->sender)
-            ->unique('id')
-            ->values();
     }
 }

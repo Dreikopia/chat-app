@@ -30,6 +30,8 @@ class FriendshipController extends Controller
             'friends' => $friends,
             'incomingRequests' => $incomingRequests,
             'outgoingRequests' => $outgoingRequests,
+            'conversations' => $user->conversations(),
+            'activeId' => null,
         ]);
     }
 }

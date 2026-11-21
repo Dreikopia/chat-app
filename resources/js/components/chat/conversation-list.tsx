@@ -38,6 +38,7 @@ export function ConversationList({ conversations, activeId }: Props) {
 
             {filteredConversations.length > 0 ? (
                 <nav className="flex flex-col gap-0.5" aria-label="Conversations">
+                    <h2 className='pl-2 py-2 text-sm text-muted-foreground'>Direct Messages</h2>
                     {filteredConversations.map((conversation) => (
                         <ConversationRow
                             key={conversation.id}
