@@ -101,13 +101,14 @@ class User extends Authenticatable implements PasskeyUser
     }
 
     /**
-     * The distinct users this user has exchanged messages with, newest first.
+     * The distinct users this user has exchanged messages with, newest first,
+     * followed by accepted friends without a conversation, alphabetically.
      *
      * @return Collection<int, User>
      */
     public function conversations(): Collection
     {
-        return Message::query()
+        $conversations = Message::query()
             ->with([
                 'sender:id,name,username,avatar_path',
                 'recipient:id,name,username,avatar_path',
@@ -124,5 +125,18 @@ class User extends Authenticatable implements PasskeyUser
                 : $message->sender)
             ->unique('id')
             ->values();
+
+        $conversationIds = $conversations->pluck('id');
+
+        $friends = $this->friends()
+            ->select('id', 'name', 'username', 'avatar_path')
+            ->when(
+                $conversationIds->isNotEmpty(),
+                fn (Builder $query) => $query->whereNotIn('users.id', $conversationIds),
+            )
+            ->orderBy('name')
+            ->get();
+
+        return $conversations->concat($friends)->values();
     }
 }

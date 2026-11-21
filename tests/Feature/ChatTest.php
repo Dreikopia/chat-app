@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Friendship;
 use App\Models\Message;
 use App\Models\User;
 
@@ -83,4 +84,67 @@ test('users cannot open a chat with themselves', function () {
     $this->actingAs($user)
         ->get(route('chat.show', $user))
         ->assertNotFound();
+});
+
+test('accepted friends without messages appear in conversations', function () {
+    $user = User::factory()->create();
+    $friend = User::factory()->create();
+    $stranger = User::factory()->create();
+
+    Friendship::factory()->between($user, $friend)->accepted()->create();
+
+    $this->actingAs($user)
+        ->get(route('chat.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('chat/index')
+            ->has('conversations', 1)
+            ->where('conversations.0.id', $friend->id)
+            ->where('conversations.0.name', $friend->name)
+            ->where('conversations.0.username', $friend->username)
+        );
+});
+
+test('friends without messages appear after message conversations in alphabetical order', function () {
+    $user = User::factory()->create();
+    $messagePartner = User::factory()->create();
+    $friendZoe = User::factory()->create(['name' => 'Zoe Friend']);
+    $friendAdam = User::factory()->create(['name' => 'Adam Friend']);
+
+    Message::factory()->create([
+        'sender_id' => $user->id,
+        'recipient_id' => $messagePartner->id,
+    ]);
+
+    Friendship::factory()->between($user, $friendZoe)->accepted()->create();
+    Friendship::factory()->between($friendAdam, $user)->accepted()->create();
+
+    $this->actingAs($user)
+        ->get(route('chat.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('conversations', 3)
+            ->where('conversations.0.id', $messagePartner->id)
+            ->where('conversations.1.id', $friendAdam->id)
+            ->where('conversations.2.id', $friendZoe->id)
+        );
+});
+
+test('a friend with an existing conversation is not duplicated in conversations', function () {
+    $user = User::factory()->create();
+    $friend = User::factory()->create();
+
+    Friendship::factory()->between($user, $friend)->accepted()->create();
+    Message::factory()->create([
+        'sender_id' => $user->id,
+        'recipient_id' => $friend->id,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('chat.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('conversations', 1)
+            ->where('conversations.0.id', $friend->id)
+        );
 });
