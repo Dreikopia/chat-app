@@ -25,6 +25,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/chat/{user}/messages', [MessageController::class, 'store'])
         ->name('messages.store');
 
+    Route::delete('/messages/{message}', [MessageController::class, 'destroy'])
+        ->name('messages.destroy');
+
     Route::get('/users/search', [UserSearchController::class, 'index'])
         ->name('users.search');
 

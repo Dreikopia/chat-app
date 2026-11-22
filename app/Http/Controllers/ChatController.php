@@ -45,6 +45,16 @@ class ChatController extends Controller
             ->reverse()
             ->values();
 
+        $messages = $messages->map(fn (Message $message) => [
+            'id' => $message->id,
+            'sender_id' => $message->sender_id,
+            'recipient_id' => $message->recipient_id,
+            'body' => $message->deleted_at ? null : $message->body,
+            'is_deleted' => $message->deleted_at !== null,
+            'read_at' => $message->read_at?->toISOString(),
+            'created_at' => $message->created_at->toISOString(),
+        ]);
+
         return Inertia::render('chat/show', [
             'user' => $user,
             'messages' => $messages,

@@ -32,4 +32,21 @@ class MessageController extends Controller
 
         return to_route('chat.show', $user);
     }
+
+    public function destroy(Message $message)
+    {
+        $this->authorize('delete', $message); // checks the policy
+
+        if ($message->deleted_at !== null) {
+            return back();
+        }
+
+        // soft deletion
+        $message->update([
+            'body' => null,
+            'deleted_at' => now(),
+        ]);
+
+        return back();
+    }
 }
