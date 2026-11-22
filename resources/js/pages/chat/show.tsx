@@ -47,7 +47,10 @@ export default function ChatShow({ user, messages, canMessage }: Props) {
         <>
             <Head title={user.name} />
             <ChatHeader partner={user} />
-            <MessageList messages={liveMessages} />
+            <MessageList
+                messages={liveMessages}
+                currentUserId={auth.user.id}
+            />
             {canMessage ? (
                 <MessageComposer recipientId={user.id} />
             ) : (

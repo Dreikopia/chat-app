@@ -1,10 +1,15 @@
-import { usePage } from '@inertiajs/react';
 import { MessageBubble } from '@/components/chat/message-bubble';
-import type { Auth, ChatMessage } from '@/types';
+import type { ChatMessage } from '@/types';
 
-export function MessageList({ messages }: { messages: ChatMessage[] }) {
-    const { auth } = usePage<{ auth: Auth }>().props;
+type MessageListProps = {
+    messages: ChatMessage[];
+    currentUserId: number;
+};
 
+export function MessageList({
+    messages,
+    currentUserId,
+}: MessageListProps) {
     if (messages.length === 0) {
         return (
             <div className="flex flex-1 items-center justify-center p-6">
@@ -21,7 +26,7 @@ export function MessageList({ messages }: { messages: ChatMessage[] }) {
                 <MessageBubble
                     key={message.id}
                     message={message}
-                    isOwn={message.sender_id === auth.user.id}
+                    currentUserId={currentUserId}
                 />
             ))}
         </div>
