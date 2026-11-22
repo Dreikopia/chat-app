@@ -23,7 +23,10 @@ class ChatController extends Controller
     {
         $currentUser = $request->user();
         abort_if($currentUser->is($user), 404);
-        abort_unless($currentUser->isFriendsWith($user), 403);
+
+        $isFriend = $currentUser->isFriendsWith($user);
+
+        abort_unless($isFriend || $currentUser->hasConversationWith($user), 403);
 
         $messages = Message::query()
             ->where(function ($query) use ($currentUser, $user) {
@@ -47,6 +50,7 @@ class ChatController extends Controller
             'messages' => $messages,
             'conversations' => $currentUser->conversations(),
             'activeId' => $user->id,
+            'canMessage' => $isFriend,
         ]);
     }
 }

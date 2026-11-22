@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { Users } from 'lucide-react';
 import { ChatSidebarHeader } from '@/components/chat/chat-sidebar-header';
 import { ConversationList } from '@/components/chat/conversation-list';
@@ -9,6 +9,7 @@ import {
     SidebarGroup,
     SidebarHeader,
     SidebarMenu,
+    SidebarMenuBadge,
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
@@ -24,6 +25,7 @@ type Props = {
 
 export function ChatSidebar({ conversations, activeId }: Props) {
     const { isCurrentUrl } = useCurrentUrl();
+    const { pendingFriendRequestsCount } = usePage().props;
 
     return (
         <Sidebar collapsible="offcanvas" variant="inset">
@@ -44,6 +46,14 @@ export function ChatSidebar({ conversations, activeId }: Props) {
                                     <span>Friends</span>
                                 </Link>
                             </SidebarMenuButton>
+
+                            {pendingFriendRequestsCount > 0 && (
+                                <SidebarMenuBadge>
+                                    {pendingFriendRequestsCount > 99
+                                        ? '99+'
+                                        : pendingFriendRequestsCount}
+                                </SidebarMenuBadge>
+                            )}
                         </SidebarMenuItem>
                     </SidebarMenu>
                 </SidebarGroup>

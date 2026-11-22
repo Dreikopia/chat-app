@@ -40,7 +40,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/friend-requests/{friendship}/cancel', [FriendRequestController::class, 'cancel'])
         ->name('friend-requests.cancel');
 
-    Route::delete('/friends/{friendship}', [FriendRequestController::class, 'destroy'])
+    Route::delete('/friends/{user}', [FriendRequestController::class, 'destroy'])
         ->name('friends.destroy');
 
     Route::get('/friends', [FriendshipController::class, 'index'])

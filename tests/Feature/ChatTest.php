@@ -26,6 +26,7 @@ test('the chat index lists the users the current user has messaged', function ()
             ->has('conversations', 1)
             ->where('conversations.0.id', $partner->id)
             ->where('activeId', null)
+            ->where('pendingFriendRequestsCount', 0)
         );
 });
 
@@ -51,16 +52,59 @@ test('the chat show page returns the thread and marks the partner active', funct
             ->where('messages.0.body', 'Hello there')
             ->has('conversations', 1)
             ->where('activeId', $partner->id)
+            ->where('canMessage', true)
         );
 });
 
-test('users cannot open a chat with someone who is not a friend', function () {
+test('users cannot open a chat with someone they have never messaged', function () {
     $user = User::factory()->create();
     $stranger = User::factory()->create();
 
     $this->actingAs($user)
         ->get(route('chat.show', $stranger))
         ->assertForbidden();
+});
+
+test('users can still read a conversation after the friendship is removed', function () {
+    $user = User::factory()->create();
+    $formerFriend = User::factory()->create();
+
+    $friendship = Friendship::factory()->between($user, $formerFriend)->accepted()->create();
+
+    Message::factory()->create([
+        'sender_id' => $formerFriend->id,
+        'recipient_id' => $user->id,
+        'body' => 'Before we stopped being friends',
+    ]);
+
+    $friendship->delete();
+
+    $this->actingAs($user)
+        ->get(route('chat.show', $formerFriend))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('chat/show')
+            ->where('user.id', $formerFriend->id)
+            ->has('messages', 1)
+            ->where('messages.0.body', 'Before we stopped being friends')
+            ->where('canMessage', false)
+        );
+});
+
+test('the pending friend request count only includes incoming requests', function () {
+    $user = User::factory()->create();
+    $requester = User::factory()->create();
+    $addressee = User::factory()->create();
+
+    Friendship::factory()->between($requester, $user)->pending()->create();
+    Friendship::factory()->between($user, $addressee)->pending()->create();
+
+    $this->actingAs($user)
+        ->get(route('chat.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('pendingFriendRequestsCount', 1)
+        );
 });
 
 test('the chat show page only returns messages between the two participants', function () {

@@ -10,11 +10,12 @@ import type { Auth, ChatMessage, ConversationPartner } from '@/types';
 type Props = {
     user: ConversationPartner;
     messages: ChatMessage[];
+    canMessage: boolean;
 };
 
 type RealtimeMessage = ChatMessage & { sender_name: string };
 
-export default function ChatShow({ user, messages }: Props) {
+export default function ChatShow({ user, messages, canMessage }: Props) {
     const { auth } = usePage<{ auth: Auth }>().props;
     const [incoming, setIncoming] = useState<ChatMessage[]>([]);
 
@@ -47,7 +48,14 @@ export default function ChatShow({ user, messages }: Props) {
             <Head title={user.name} />
             <ChatHeader partner={user} />
             <MessageList messages={liveMessages} />
-            <MessageComposer recipientId={user.id} />
+            {canMessage ? (
+                <MessageComposer recipientId={user.id} />
+            ) : (
+                <p className="border-t p-4 text-sm text-muted-foreground">
+                    You're no longer friends with {user.name}. You can still
+                    read your conversation, but you can't send new messages.
+                </p>
+            )}
         </>
     );
 }

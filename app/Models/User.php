@@ -105,6 +105,20 @@ class User extends Authenticatable implements PasskeyUser
         return $this->friends()->whereKey($user->id)->exists();
     }
 
+    public function hasConversationWith(User $user): bool
+    {
+        return Message::query()
+            ->where(function (Builder $query) use ($user) {
+                $query->where('sender_id', $this->id)
+                    ->where('recipient_id', $user->id);
+            })
+            ->orWhere(function (Builder $query) use ($user) {
+                $query->where('sender_id', $user->id)
+                    ->where('recipient_id', $this->id);
+            })
+            ->exists();
+    }
+
     /**
      * The distinct users this user has exchanged messages with, newest first,
      * followed by accepted friends without a conversation, alphabetically.

@@ -13,7 +13,7 @@ test('guests cannot use friend request endpoints', function () {
     $this->patch(route('friend-request.accept', $friendship))->assertRedirect(route('login'));
     $this->delete(route('friend-requests.decline', $friendship))->assertRedirect(route('login'));
     $this->delete(route('friend-requests.cancel', $friendship))->assertRedirect(route('login'));
-    $this->delete(route('friends.destroy', $friendship))->assertRedirect(route('login'));
+    $this->delete(route('friends.destroy', $addressee))->assertRedirect(route('login'));
 });
 
 test('a user can send a friend request', function () {
@@ -129,34 +129,22 @@ test('a participant can remove an accepted friendship', function () {
     $friendship = Friendship::factory()->between($requester, $addressee)->accepted()->create();
 
     $this->actingAs($addressee)
-        ->delete(route('friends.destroy', $friendship))
+        ->delete(route('friends.destroy', $requester))
         ->assertRedirect()
         ->assertSessionHas('success');
 
     $this->assertDatabaseMissing('friendships', ['id' => $friendship->id]);
 });
 
-test('an outsider cannot remove a friendship', function () {
-    $requester = User::factory()->create();
-    $addressee = User::factory()->create();
-    $outsider = User::factory()->create();
-    $friendship = Friendship::factory()->between($requester, $addressee)->accepted()->create();
+test('removing a non-friend is a no-op', function () {
+    $user = User::factory()->create();
+    $other = User::factory()->create();
+    $friendship = Friendship::factory()->between($user, $other)->pending()->create();
 
-    $this->actingAs($outsider)
-        ->delete(route('friends.destroy', $friendship))
-        ->assertForbidden();
-
-    $this->assertDatabaseHas('friendships', ['id' => $friendship->id]);
-});
-
-test('a pending friendship cannot be removed', function () {
-    $requester = User::factory()->create();
-    $addressee = User::factory()->create();
-    $friendship = Friendship::factory()->between($requester, $addressee)->pending()->create();
-
-    $this->actingAs($requester)
-        ->delete(route('friends.destroy', $friendship))
-        ->assertSessionHasErrors('friendship');
+    $this->actingAs($user)
+        ->delete(route('friends.destroy', $other))
+        ->assertRedirect()
+        ->assertSessionHas('success');
 
     $this->assertDatabaseHas('friendships', ['id' => $friendship->id]);
 });

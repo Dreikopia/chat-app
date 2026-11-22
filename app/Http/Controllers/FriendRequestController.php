@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\FriendshipStatus;
 use App\Models\Friendship;
 use App\Models\User;
 use App\Services\FriendshipService;
@@ -54,12 +55,24 @@ class FriendRequestController extends Controller
         return back()->with('success', 'Friend request cancelled.');
     }
 
-    public function destroy(Request $request, Friendship $friendship): RedirectResponse
+    public function destroy(Request $request, User $user): RedirectResponse
     {
-        $this->friendshipService->removeFriend(
-            $friendship,
-            $request->user()
-        );
+        $friendship = Friendship::query()
+            ->where(function ($query) use ($request, $user) {
+                $query->where(function ($query) use ($request, $user) {
+                    $query->where('requester_id', $request->user()->id)
+                        ->where('addressee_id', $user->id);
+                })->orWhere(function ($query) use ($request, $user) {
+                    $query->where('requester_id', $user->id)
+                        ->where('addressee_id', $request->user()->id);
+                });
+            })
+            ->where('status', FriendshipStatus::ACCEPTED)
+            ->first();
+
+        if ($friendship) {
+            $this->friendshipService->removeFriend($friendship, $request->user());
+        }
 
         return back()->with('success', 'Friend removed.');
     }
