@@ -1,7 +1,9 @@
 <?php
 
+use App\Events\MessageSent;
 use App\Models\Friendship;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 
 test('friends can send a message', function () {
     $sender = User::factory()->create();
@@ -9,11 +11,18 @@ test('friends can send a message', function () {
 
     Friendship::factory()->between($sender, $recipient)->accepted()->create();
 
+    Event::fake([MessageSent::class]);
+
     $this->actingAs($sender)
         ->post(route('messages.store', $recipient), [
             'body' => "Hey what's up twin",
         ])
         ->assertRedirect(route('chat.show', $recipient));
+
+    Event::assertDispatched(
+        MessageSent::class,
+        fn (MessageSent $event) => $event->message->recipient_id === $recipient->id,
+    );
 
     $this->assertDatabaseHas('messages', [
         'sender_id' => $sender->id,

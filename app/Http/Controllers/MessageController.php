@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageSent;
 use App\Http\Requests\StoreMessageRequest;
 use App\Models\Message;
 use App\Models\User;
+use Throwable;
 
 class MessageController extends Controller
 {
@@ -16,11 +18,17 @@ class MessageController extends Controller
 
         abort_unless($sender->isFriendsWith($user), 403); // must be friends
 
-        Message::create([
+        $message = Message::create([
             'sender_id' => $sender->id,
             'recipient_id' => $user->id,
             'body' => $request->validated('body'),
         ]);
+
+        try {
+            MessageSent::dispatch($message);
+        } catch (Throwable $e) {
+            report($e); // a broadcast failure must not fail the saved message
+        }
 
         return to_route('chat.show', $user);
     }
