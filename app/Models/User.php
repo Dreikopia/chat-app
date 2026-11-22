@@ -100,6 +100,11 @@ class User extends Authenticatable implements PasskeyUser
             });
     }
 
+    public function isFriendsWith(User $user): bool
+    {
+        return $this->friends()->whereKey($user->id)->exists();
+    }
+
     /**
      * The distinct users this user has exchanged messages with, newest first,
      * followed by accepted friends without a conversation, alphabetically.

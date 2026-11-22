@@ -14,6 +14,8 @@ class MessageController extends Controller
 
         abort_if($sender->is($user), 404); // prevent sending to self
 
+        abort_unless($sender->isFriendsWith($user), 403); // must be friends
+
         Message::create([
             'sender_id' => $sender->id,
             'recipient_id' => $user->id,

@@ -23,6 +23,7 @@ class ChatController extends Controller
     {
         $currentUser = $request->user();
         abort_if($currentUser->is($user), 404);
+        abort_unless($currentUser->isFriendsWith($user), 403);
 
         $messages = Message::query()
             ->where(function ($query) use ($currentUser, $user) {
@@ -35,8 +36,11 @@ class ChatController extends Controller
                             ->where('recipient_id', $currentUser->id);
                     });
             })
-            ->orderBy('created_at')
-            ->get();
+            ->latest('id')
+            ->limit(50)
+            ->get()
+            ->reverse()
+            ->values();
 
         return Inertia::render('chat/show', [
             'user' => $user,

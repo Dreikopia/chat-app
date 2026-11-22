@@ -33,6 +33,8 @@ test('the chat show page returns the thread and marks the partner active', funct
     $user = User::factory()->create();
     $partner = User::factory()->create();
 
+    Friendship::factory()->between($user, $partner)->accepted()->create();
+
     Message::factory()->create([
         'sender_id' => $partner->id,
         'recipient_id' => $user->id,
@@ -49,6 +51,72 @@ test('the chat show page returns the thread and marks the partner active', funct
             ->where('messages.0.body', 'Hello there')
             ->has('conversations', 1)
             ->where('activeId', $partner->id)
+        );
+});
+
+test('users cannot open a chat with someone who is not a friend', function () {
+    $user = User::factory()->create();
+    $stranger = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('chat.show', $stranger))
+        ->assertForbidden();
+});
+
+test('the chat show page only returns messages between the two participants', function () {
+    $user = User::factory()->create();
+    $partner = User::factory()->create();
+    $stranger = User::factory()->create();
+
+    Friendship::factory()->between($user, $partner)->accepted()->create();
+
+    Message::factory()->create([
+        'sender_id' => $user->id,
+        'recipient_id' => $partner->id,
+        'body' => 'Mine',
+    ]);
+    Message::factory()->create([
+        'sender_id' => $partner->id,
+        'recipient_id' => $user->id,
+        'body' => 'Theirs',
+    ]);
+    Message::factory()->create([
+        'sender_id' => $user->id,
+        'recipient_id' => $stranger->id,
+        'body' => 'Not in this chat',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('chat.show', $partner))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('messages', 2)
+            ->where('messages.0.body', 'Mine')
+            ->where('messages.1.body', 'Theirs')
+        );
+});
+
+test('the chat show page returns only the latest 50 messages in order', function () {
+    $user = User::factory()->create();
+    $partner = User::factory()->create();
+
+    Friendship::factory()->between($user, $partner)->accepted()->create();
+
+    Message::factory()
+        ->count(55)
+        ->sequence(fn ($sequence) => ['body' => 'Message '.($sequence->index + 1)])
+        ->create([
+            'sender_id' => $user->id,
+            'recipient_id' => $partner->id,
+        ]);
+
+    $this->actingAs($user)
+        ->get(route('chat.show', $partner))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('messages', 50)
+            ->where('messages.0.body', 'Message 6')
+            ->where('messages.49.body', 'Message 55')
         );
 });
 

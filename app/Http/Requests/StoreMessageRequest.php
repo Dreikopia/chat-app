@@ -26,7 +26,7 @@ class StoreMessageRequest extends FormRequest
             'body' => [
                 'required',
                 'string',
-                'max:255',
+                'max:1000',
                 'not_regex:/^\s*$/',
             ],
         ];
