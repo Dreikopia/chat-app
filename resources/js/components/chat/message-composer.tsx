@@ -1,7 +1,7 @@
-import { useForm } from "@inertiajs/react";
-import React from "react";
-import { Textarea } from "../ui/textarea";
-import { Button } from "../ui/button";
+import { useForm } from '@inertiajs/react';
+import React from 'react';
+import { Textarea } from '../ui/textarea';
+import { Button } from '../ui/button';
 
 type Props = {
     recipientId: number;
@@ -17,6 +17,8 @@ export function MessageComposer({ recipientId }: Props) {
 
         form.post(`/chat/${recipientId}/messages`, {
             preserveScroll: true,
+            preserveState: true,
+            only: ['messages'],
             onSuccess: () => form.reset(),
         });
     }

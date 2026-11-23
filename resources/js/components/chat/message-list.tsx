@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { MessageBubble } from '@/components/chat/message-bubble';
 import type { ChatMessage } from '@/types';
 
@@ -6,10 +7,18 @@ type MessageListProps = {
     currentUserId: number;
 };
 
-export function MessageList({
-    messages,
-    currentUserId,
-}: MessageListProps) {
+export function MessageList({ messages, currentUserId }: MessageListProps) {
+    const listRef = useRef<HTMLDivElement>(null);
+    const lastMessageId = messages[messages.length - 1]?.id;
+
+    useEffect(() => {
+        const list = listRef.current;
+
+        if (list) {
+            list.scrollTop = list.scrollHeight;
+        }
+    }, [lastMessageId]);
+
     if (messages.length === 0) {
         return (
             <div className="flex flex-1 items-center justify-center p-6">
@@ -21,7 +30,10 @@ export function MessageList({
     }
 
     return (
-        <div className="flex flex-1 flex-col gap-2 overflow-y-auto p-4">
+        <div
+            ref={listRef}
+            className="flex flex-1 flex-col gap-2 overflow-y-auto p-4"
+        >
             {messages.map((message) => (
                 <MessageBubble
                     key={message.id}
