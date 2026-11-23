@@ -2,7 +2,7 @@ export type ConversationPartner = {
     id: number;
     name: string;
     username: string;
-    avatar_path: string | null;
+    avatar: string | null;
     unread_count?: number;
 };
 

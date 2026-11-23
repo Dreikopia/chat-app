@@ -1,5 +1,6 @@
 import { Form, Head, usePage } from '@inertiajs/react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
+import AvatarForm from '@/components/avatar-form';
 import DeleteUser from '@/components/delete-user';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
@@ -124,6 +125,16 @@ export default function Profile() {
                         </>
                     )}
                 </Form>
+
+                <div className="space-y-4 border-t pt-6">
+                    <Heading
+                        variant="small"
+                        title="Photo"
+                        description="Update your profile picture"
+                    />
+
+                    <AvatarForm user={auth.user} />
+                </div>
             </div>
 
             <DeleteUser />

@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import FriendAvatar from '@/components/friends/friend-avatar';
 import { show } from '@/routes/chat';
 import type { ConversationPartner } from '@/types/chat';
 import { cn } from '@/lib/utils';
@@ -18,9 +19,10 @@ export function ConversationRow({ conversation, isActive }: Props) {
             )}
             aria-current={isActive ? 'page' : undefined}
         >
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium">
-                {conversation.name.charAt(0).toUpperCase()}
-            </div>
+            <FriendAvatar
+                name={conversation.name}
+                avatar={conversation.avatar}
+            />
 
             <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">

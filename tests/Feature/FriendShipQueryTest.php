@@ -2,6 +2,7 @@
 
 use App\Models\Friendship;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 
 test('a user can retrieve their friends', function () {
     $user = User::factory()->create();
@@ -15,6 +16,24 @@ test('a user can retrieve their friends', function () {
     expect($user->friends()->get())
         ->toHaveCount(1)
         ->first()->id->toBe($friend->id);
+});
+
+test('the friends page includes the friend avatar', function () {
+    $user = User::factory()->create();
+    $friend = User::factory()->create(['avatar_path' => 'avatars/friend.jpg']);
+
+    Friendship::factory()
+        ->between($user, $friend)
+        ->accepted()
+        ->create();
+
+    $this->actingAs($user)
+        ->get(route('friends.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('friends/index')
+            ->where('friends.0.avatar', Storage::disk('public')->url('avatars/friend.jpg'))
+        );
 });
 
 test('isFriendsWith is true for accepted friendships in either direction', function () {

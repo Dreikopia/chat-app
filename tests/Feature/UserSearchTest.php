@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 
 test('guest cannot search for users', function () {
     $this->get(route('users.search', ['query' => 'john']))
@@ -15,6 +16,7 @@ test('authenticated user can search users by username', function () {
     $john = User::factory()->create([
         'name' => 'John Doe',
         'username' => 'johndoe',
+        'avatar_path' => 'avatars/john.jpg',
     ]);
 
     User::factory()->create([
@@ -26,7 +28,8 @@ test('authenticated user can search users by username', function () {
         ->assertOk()
         ->assertJsonCount(1)
         ->assertJsonPath('0.id', $john->id)
-        ->assertJsonPath('0.username', 'johndoe');
+        ->assertJsonPath('0.username', 'johndoe')
+        ->assertJsonPath('0.avatar', Storage::disk('public')->url('avatars/john.jpg'));
 });
 
 test('search does not return the authenticated user', function () {

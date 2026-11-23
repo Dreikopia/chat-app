@@ -29,7 +29,7 @@ class UserSearchController extends Controller
         ]);
 
         $users = User::query()
-            ->select(['id', 'name', 'username'])
+            ->select(['id', 'name', 'username', 'avatar_path'])
             ->where('id', '!=', $request->user()->id)
             ->whereRaw(
                 "LOWER(username) LIKE ? ESCAPE '!'",

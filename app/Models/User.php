@@ -4,15 +4,18 @@ namespace App\Models;
 
 use App\Enums\FriendshipStatus;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Attributes\Appends;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -22,6 +25,8 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string $name
  * @property string $username
  * @property string|null $bio
+ * @property string|null $avatar_path
+ * @property-read string|null $avatar
  * @property string $email
  * @property Carbon|null $email_verified_at
  * @property string $password
@@ -32,7 +37,8 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'username', 'email', 'password', 'bio'])]
+#[Appends(['avatar'])]
+#[Fillable(['name', 'username', 'email', 'password', 'bio', 'avatar_path'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
@@ -49,6 +55,18 @@ class User extends Authenticatable implements PasskeyUser
         'password' => 'hashed',
         'two_factor_confirmed_at' => 'datetime',
     ];
+
+    /**
+     * Get the public URL of the user's avatar.
+     *
+     * @return Attribute<string|null, never>
+     */
+    protected function avatar(): Attribute
+    {
+        return Attribute::get(fn (): ?string => $this->avatar_path === null
+            ? null
+            : Storage::disk('public')->url($this->avatar_path));
+    }
 
     public function sentMessages(): HasMany
     {

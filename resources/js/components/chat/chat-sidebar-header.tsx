@@ -10,11 +10,6 @@ export function ChatSidebarHeader() {
             <h1 className="min-w-0 flex-1 truncate text-lg font-semibold">
                 Chats
             </h1>
-
-            <Button variant="ghost" size="icon" title="New chat">
-                <Plus />
-                <span className="sr-only">New chat</span>
-            </Button>
         </div>
     );
 }

@@ -13,16 +13,16 @@ class FriendshipController extends Controller
         $user = $request->user();
 
         $friends = $user->friends()
-            ->select('id', 'name', 'username')
+            ->select('id', 'name', 'username', 'avatar_path')
             ->get();
 
         $incomingRequests = $user->incomingFriendRequests()
-            ->with('requester:id,name,username')
+            ->with('requester:id,name,username,avatar_path')
             ->latest()
             ->get();
 
         $outgoingRequests = $user->outgoingFriendRequests()
-            ->with('addressee:id,name,username')
+            ->with('addressee:id,name,username,avatar_path')
             ->latest()
             ->get();
 
