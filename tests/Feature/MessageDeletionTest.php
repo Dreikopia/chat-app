@@ -1,7 +1,9 @@
 <?php
 
+use App\Events\MessageDeleted;
 use App\Models\Message;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 
 it('lets the sender delete a message for the recipient', function () {
     $sender = User::factory()->create();
@@ -87,4 +89,28 @@ it('prevents guest from deleting messages', function () {
 
     $this->delete(route('messages.destroy', $message))
         ->assertRedirect(route('login'));
+});
+
+it('broadcasts the deletion to both people in the conversation', function () {
+    Event::fake([MessageDeleted::class]);
+
+    $sender = User::factory()->create();
+    $recipient = User::factory()->create();
+
+    $message = Message::factory()->create([
+        'sender_id' => $sender->id,
+        'recipient_id' => $recipient->id,
+    ]);
+
+    $this->actingAs($sender)
+        ->delete(route('messages.destroy', $message))
+        ->assertRedirect();
+
+    Event::assertDispatched(MessageDeleted::class, function (MessageDeleted $event) use ($message, $sender, $recipient) {
+        return $event->message->is($message)
+            && array_map(fn ($channel) => $channel->name, $event->broadcastOn()) === [
+                'private-user.'.$recipient->id,
+                'private-user.'.$sender->id,
+            ];
+    });
 });

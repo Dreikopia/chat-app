@@ -18,6 +18,7 @@ type RealtimeMessage = ChatMessage & { sender_name: string };
 export default function ChatShow({ user, messages, canMessage }: Props) {
     const { auth } = usePage<{ auth: Auth }>().props;
     const [incoming, setIncoming] = useState<ChatMessage[]>([]);
+    const [deletedIds, setDeletedIds] = useState<number[]>([]);
 
     useEcho<RealtimeMessage>(
         `user.${auth.user.id}`,
@@ -37,11 +38,35 @@ export default function ChatShow({ user, messages, canMessage }: Props) {
         },
     );
 
+    useEcho<{ id: number }>(
+        `user.${auth.user.id}`,
+        '.message.deleted',
+        (event) => {
+            setDeletedIds((current) =>
+                current.includes(event.id)
+                    ? current
+                    : [...current, event.id],
+            );
+        },
+    );
+
     // Inertia keeps state on the redirect after sending, so merge with the fresh props.
     const liveMessages = [
         ...messages,
         ...incoming.filter(({ id }) => !messages.some((m) => m.id === id)),
-    ];
+    ].map((message) =>
+        deletedIds.includes(message.id)
+            ? {
+                  ...message,
+                  // Deleting hides the message from the recipient; the sender keeps it.
+                  body:
+                      message.sender_id === auth.user.id
+                          ? message.body
+                          : null,
+                  is_deleted: true,
+              }
+            : message,
+    );
 
     return (
         <>
