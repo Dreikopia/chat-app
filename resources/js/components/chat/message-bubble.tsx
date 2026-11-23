@@ -63,34 +63,36 @@ export function MessageBubble({ message, currentUserId }: Props) {
         });
     };
 
+    const optionsMenu = !message.is_deleted && (
+        <div className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 rounded-full text-muted-foreground hover:text-foreground"
+                        aria-label="Message options"
+                    >
+                        <MoreVertical className="size-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent align={isOwn ? 'end' : 'start'}>
+                    <DropdownMenuItem
+                        variant="destructive"
+                        onSelect={() => setDialogOpen(true)}
+                    >
+                        Delete message
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+    );
+
     return (
         <div className={cn('flex', isOwn ? 'justify-end' : 'justify-start')}>
             <div className="group flex max-w-[75%] items-start gap-1">
-                {isOwn && !message.is_deleted && (
-                    <div className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="size-8 rounded-full text-muted-foreground hover:text-foreground"
-                                    aria-label="Message options"
-                                >
-                                    <MoreVertical className="size-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                    variant="destructive"
-                                    onSelect={() => setDialogOpen(true)}
-                                >
-                                    Delete message
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                )}
+                {isOwn && optionsMenu}
 
                 <div
                     className={cn(
@@ -130,6 +132,8 @@ export function MessageBubble({ message, currentUserId }: Props) {
                         {sentAtTime}
                     </time>
                 </div>
+
+                {!isOwn && optionsMenu}
             </div>
 
             <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -137,8 +141,9 @@ export function MessageBubble({ message, currentUserId }: Props) {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete message</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This message will be hidden from the other person.
-                            You'll still see it.
+                            {isOwn
+                                ? "This message will be hidden from the other person. You'll still see it."
+                                : 'This message will be removed from your view. The other person will still see it.'}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
 

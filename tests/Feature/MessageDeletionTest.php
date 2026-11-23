@@ -51,7 +51,7 @@ it('hides a deleted message from the recipient but not the sender', function () 
         );
 });
 
-it('prevents the recipient from deleting a message', function () {
+it('lets the recipient delete a message from their view', function () {
     $sender = User::factory()->create();
     $recipient = User::factory()->create();
 
@@ -62,6 +62,20 @@ it('prevents the recipient from deleting a message', function () {
     ]);
 
     $this->actingAs($recipient)
+        ->delete(route('messages.destroy', $message))
+        ->assertRedirect();
+
+    $message->refresh();
+
+    expect($message->body)->toBe('Hello!')
+        ->and($message->deleted_at)->not->toBeNull();
+});
+
+it('prevents a stranger from deleting a message', function () {
+    $message = Message::factory()->create();
+    $stranger = User::factory()->create();
+
+    $this->actingAs($stranger)
         ->delete(route('messages.destroy', $message))
         ->assertForbidden();
 
