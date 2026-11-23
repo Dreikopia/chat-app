@@ -29,6 +29,18 @@ type Props = {
 export function MessageBubble({ message, currentUserId }: Props) {
     const isOwn = message.sender_id === currentUserId;
 
+    const sentAt = new Date(message.created_at);
+
+    const sentAtTime = new Intl.DateTimeFormat(undefined, {
+        hour: 'numeric',
+        minute: '2-digit',
+    }).format(sentAt);
+
+    const sentAtFull = new Intl.DateTimeFormat(undefined, {
+        dateStyle: 'full',
+        timeStyle: 'short',
+    }).format(sentAt);
+
     const [dialogOpen, setDialogOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [deleteError, setDeleteError] = useState(false);
@@ -82,26 +94,41 @@ export function MessageBubble({ message, currentUserId }: Props) {
 
                 <div
                     className={cn(
-                        'rounded-2xl px-3 py-2 text-sm break-words whitespace-pre-wrap',
-                        isOwn
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted text-foreground',
+                        'flex min-w-0 flex-col gap-1',
+                        isOwn ? 'items-end' : 'items-start',
                     )}
                 >
-                    {message.is_deleted ? (
-                        <p
-                            className={cn(
-                                'italic',
-                                isOwn
-                                    ? 'text-primary-foreground/70'
-                                    : 'text-muted-foreground',
-                            )}
-                        >
-                            This message was deleted
-                        </p>
-                    ) : (
-                        <p>{message.body}</p>
-                    )}
+                    <div
+                        className={cn(
+                            'rounded-2xl px-3 py-2 text-sm break-words whitespace-pre-wrap',
+                            isOwn
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted text-foreground',
+                        )}
+                    >
+                        {message.body === null ? (
+                            <p
+                                className={cn(
+                                    'italic',
+                                    isOwn
+                                        ? 'text-primary-foreground/70'
+                                        : 'text-muted-foreground',
+                                )}
+                            >
+                                This message was deleted
+                            </p>
+                        ) : (
+                            <p>{message.body}</p>
+                        )}
+                    </div>
+
+                    <time
+                        dateTime={message.created_at}
+                        title={sentAtFull}
+                        className="px-1 text-[11px] text-muted-foreground"
+                    >
+                        {sentAtTime}
+                    </time>
                 </div>
             </div>
 
@@ -110,8 +137,8 @@ export function MessageBubble({ message, currentUserId }: Props) {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete message</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This message will be removed for everyone in the
-                            conversation. This can't be undone.
+                            This message will be hidden from the other person.
+                            You'll still see it.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
 

@@ -3,6 +3,7 @@ export type ConversationPartner = {
     name: string;
     username: string;
     avatar_path: string | null;
+    unread_count?: number;
 };
 
 export type ChatMessage = {

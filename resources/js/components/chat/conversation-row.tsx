@@ -22,7 +22,7 @@ export function ConversationRow({ conversation, isActive }: Props) {
                 {conversation.name.charAt(0).toUpperCase()}
             </div>
 
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">
                     {conversation.name}
                 </p>
@@ -31,6 +31,17 @@ export function ConversationRow({ conversation, isActive }: Props) {
                     @{conversation.username}
                 </p>
             </div>
+
+            {!!conversation.unread_count && (
+                <span
+                    className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground"
+                    aria-label={`${conversation.unread_count} unread messages`}
+                >
+                    {conversation.unread_count > 99
+                        ? '99+'
+                        : conversation.unread_count}
+                </span>
+            )}
         </Link>
     );
 }

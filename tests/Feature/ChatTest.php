@@ -242,6 +242,41 @@ test('friends without messages appear after message conversations in alphabetica
         );
 });
 
+test('unread messages are counted and cleared when the thread opens', function () {
+    $user = User::factory()->create();
+    $partner = User::factory()->create();
+
+    Message::factory()->count(2)->create([
+        'sender_id' => $partner->id,
+        'recipient_id' => $user->id,
+    ]);
+    Message::factory()->create([
+        'sender_id' => $user->id,
+        'recipient_id' => $partner->id,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('chat.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('conversations.0.unread_count', 2)
+        );
+
+    $this->actingAs($user)
+        ->get(route('chat.show', $partner))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('conversations.0.unread_count', 0)
+        );
+
+    expect(
+        Message::query()
+            ->where('recipient_id', $user->id)
+            ->whereNull('read_at')
+            ->count()
+    )->toBe(0);
+});
+
 test('a friend with an existing conversation is not duplicated in conversations', function () {
     $user = User::factory()->create();
     $friend = User::factory()->create();

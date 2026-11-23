@@ -41,11 +41,8 @@ class MessageController extends Controller
             return back();
         }
 
-        // soft deletion
-        $message->update([
-            'body' => null,
-            'deleted_at' => now(),
-        ]);
+        // Keeps the body so the sender still sees their own message.
+        $message->update(['deleted_at' => now()]);
 
         return back();
     }

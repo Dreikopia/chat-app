@@ -156,6 +156,20 @@ class User extends Authenticatable implements PasskeyUser
             ->orderBy('name')
             ->get();
 
-        return $conversations->concat($friends)->values();
+        $unreadCounts = Message::query()
+            ->where('recipient_id', $this->id)
+            ->whereNull('read_at')
+            ->selectRaw('sender_id, count(*) as aggregate')
+            ->groupBy('sender_id')
+            ->pluck('aggregate', 'sender_id');
+
+        return $conversations
+            ->concat($friends)
+            ->map(function (User $user) use ($unreadCounts) {
+                $user->setAttribute('unread_count', (int) ($unreadCounts[$user->id] ?? 0));
+
+                return $user;
+            })
+            ->values();
     }
 }

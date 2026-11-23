@@ -28,6 +28,13 @@ class ChatController extends Controller
 
         abort_unless($isFriend || $currentUser->hasConversationWith($user), 403);
 
+        // Opening the thread reads every incoming message from this partner.
+        Message::query()
+            ->where('sender_id', $user->id)
+            ->where('recipient_id', $currentUser->id)
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
         $messages = Message::query()
             ->where(function ($query) use ($currentUser, $user) {
                 $query->where(function ($query) use ($currentUser, $user) {
@@ -49,7 +56,10 @@ class ChatController extends Controller
             'id' => $message->id,
             'sender_id' => $message->sender_id,
             'recipient_id' => $message->recipient_id,
-            'body' => $message->deleted_at ? null : $message->body,
+            // Deleting hides the message from the recipient; the sender keeps it.
+            'body' => $message->deleted_at && $message->sender_id !== $currentUser->id
+                ? null
+                : $message->body,
             'is_deleted' => $message->deleted_at !== null,
             'read_at' => $message->read_at?->toISOString(),
             'created_at' => $message->created_at->toISOString(),
