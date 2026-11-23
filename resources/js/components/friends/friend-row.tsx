@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import ActiveStatus from '@/components/active-status';
 import FriendAvatar from '@/components/friends/friend-avatar';
 import type { User } from '@/types/friendship';
 
@@ -13,7 +14,13 @@ export default function FriendRow({ friend, children }: Props) {
             <FriendAvatar name={friend.name} avatar={friend.avatar} />
 
             <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{friend.name}</p>
+                <div className="flex items-center gap-2">
+                    <p className="min-w-0 flex-1 truncate text-sm font-medium">
+                        {friend.name}
+                    </p>
+
+                    <ActiveStatus active={friend.is_active} />
+                </div>
 
                 <p className="truncate text-sm text-muted-foreground">
                     @{friend.username}

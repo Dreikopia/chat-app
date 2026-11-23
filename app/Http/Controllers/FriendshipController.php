@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -13,8 +14,13 @@ class FriendshipController extends Controller
         $user = $request->user();
 
         $friends = $user->friends()
-            ->select('id', 'name', 'username', 'avatar_path')
-            ->get();
+            ->select('id', 'name', 'username', 'avatar_path', 'last_seen_at')
+            ->get()
+            ->map(function (User $friend) {
+                $friend->setAttribute('is_active', $friend->isActive());
+
+                return $friend;
+            });
 
         $incomingRequests = $user->incomingFriendRequests()
             ->with('requester:id,name,username,avatar_path')

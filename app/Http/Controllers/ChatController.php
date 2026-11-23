@@ -28,6 +28,8 @@ class ChatController extends Controller
 
         abort_unless($isFriend || $currentUser->hasConversationWith($user), 403);
 
+        $user->setAttribute('is_active', $user->isActive());
+
         // Opening the thread reads every incoming message from this partner.
         Message::query()
             ->where('sender_id', $user->id)

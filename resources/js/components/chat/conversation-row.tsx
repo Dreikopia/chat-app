@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import ActiveStatus from '@/components/active-status';
 import FriendAvatar from '@/components/friends/friend-avatar';
 import { show } from '@/routes/chat';
 import type { ConversationPartner } from '@/types/chat';
@@ -19,10 +20,17 @@ export function ConversationRow({ conversation, isActive }: Props) {
             )}
             aria-current={isActive ? 'page' : undefined}
         >
-            <FriendAvatar
-                name={conversation.name}
-                avatar={conversation.avatar}
-            />
+            <span className="relative shrink-0">
+                <FriendAvatar
+                    name={conversation.name}
+                    avatar={conversation.avatar}
+                />
+
+                <ActiveStatus
+                    active={conversation.is_active}
+                    className="pointer-events-none absolute right-0 bottom-0 size-2.5 ring-2 ring-sidebar"
+                />
+            </span>
 
             <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">

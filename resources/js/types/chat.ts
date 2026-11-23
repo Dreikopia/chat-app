@@ -4,6 +4,7 @@ export type ConversationPartner = {
     username: string;
     avatar: string | null;
     unread_count?: number;
+    is_active?: boolean;
 };
 
 export type ChatMessage = {

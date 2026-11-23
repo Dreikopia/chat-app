@@ -1,3 +1,4 @@
+import ActiveStatus from '@/components/active-status';
 import FriendAvatar from '@/components/friends/friend-avatar';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import type { ConversationPartner } from '@/types/chat';
@@ -13,8 +14,15 @@ export function ChatHeader({ partner }: { partner: ConversationPartner }) {
                 className="size-8 text-xs"
             />
 
-            <div className="min-w-0">
-                <p className="truncate font-medium">{partner.name}</p>
+            <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                    <p className="min-w-0 flex-1 truncate font-medium">
+                        {partner.name}
+                    </p>
+
+                    <ActiveStatus active={partner.is_active} />
+                </div>
+
                 <p className="truncate text-xs text-muted-foreground">
                     @{partner.username}
                 </p>

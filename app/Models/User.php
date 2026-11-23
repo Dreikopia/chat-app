@@ -46,6 +46,11 @@ class User extends Authenticatable implements PasskeyUser
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     /**
+     * A user counts as active while their last seen timestamp is no older than this.
+     */
+    public const ACTIVE_WINDOW_MINUTES = 5;
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -54,6 +59,7 @@ class User extends Authenticatable implements PasskeyUser
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'two_factor_confirmed_at' => 'datetime',
+        'last_seen_at' => 'datetime',
     ];
 
     /**
@@ -138,6 +144,15 @@ class User extends Authenticatable implements PasskeyUser
     }
 
     /**
+     * Whether the user was last seen recently enough to count as active.
+     */
+    public function isActive(): bool
+    {
+        return $this->last_seen_at !== null
+            && $this->last_seen_at->isAfter(now()->subMinutes(self::ACTIVE_WINDOW_MINUTES));
+    }
+
+    /**
      * The distinct users this user has exchanged messages with, newest first,
      * followed by accepted friends without a conversation, alphabetically.
      *
@@ -147,8 +162,8 @@ class User extends Authenticatable implements PasskeyUser
     {
         $conversations = Message::query()
             ->with([
-                'sender:id,name,username,avatar_path',
-                'recipient:id,name,username,avatar_path',
+                'sender:id,name,username,avatar_path,last_seen_at',
+                'recipient:id,name,username,avatar_path,last_seen_at',
             ])
             ->where(function (Builder $query) {
                 $query->where('sender_id', $this->id)
@@ -166,7 +181,7 @@ class User extends Authenticatable implements PasskeyUser
         $conversationIds = $conversations->pluck('id');
 
         $friends = $this->friends()
-            ->select('id', 'name', 'username', 'avatar_path')
+            ->select('id', 'name', 'username', 'avatar_path', 'last_seen_at')
             ->when(
                 $conversationIds->isNotEmpty(),
                 fn (Builder $query) => $query->whereNotIn('users.id', $conversationIds),
@@ -185,6 +200,7 @@ class User extends Authenticatable implements PasskeyUser
             ->concat($friends)
             ->map(function (User $user) use ($unreadCounts) {
                 $user->setAttribute('unread_count', (int) ($unreadCounts[$user->id] ?? 0));
+                $user->setAttribute('is_active', $user->isActive());
 
                 return $user;
             })
