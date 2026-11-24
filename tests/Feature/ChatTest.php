@@ -190,6 +190,56 @@ test('conversations are ordered by their latest message', function () {
         );
 });
 
+test('conversations include the latest message preview and its metadata', function () {
+    $user = User::factory()->create();
+    $partner = User::factory()->create();
+
+    Message::factory()->create([
+        'sender_id' => $user->id,
+        'recipient_id' => $partner->id,
+        'body' => 'An older message',
+    ]);
+
+    $latest = Message::factory()->create([
+        'sender_id' => $user->id,
+        'recipient_id' => $partner->id,
+        'body' => 'See you at six',
+        'read_at' => now(),
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('chat.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('conversations.0.last_message', 'See you at six')
+            ->where('conversations.0.last_message_at', $latest->created_at->toISOString())
+            ->where('conversations.0.last_message_is_mine', true)
+            ->where('conversations.0.last_message_is_deleted', false)
+            ->where('conversations.0.last_message_is_read', true)
+        );
+});
+
+test('a deleted message from the partner is hidden from the conversation preview', function () {
+    $user = User::factory()->create();
+    $partner = User::factory()->create();
+
+    Message::factory()->create([
+        'sender_id' => $partner->id,
+        'recipient_id' => $user->id,
+        'body' => 'This should not be previewed',
+        'deleted_at' => now(),
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('chat.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('conversations.0.last_message', null)
+            ->where('conversations.0.last_message_is_mine', false)
+            ->where('conversations.0.last_message_is_deleted', true)
+        );
+});
+
 test('users cannot open a chat with themselves', function () {
     $user = User::factory()->create();
 
@@ -214,6 +264,8 @@ test('accepted friends without messages appear in conversations', function () {
             ->where('conversations.0.id', $friend->id)
             ->where('conversations.0.name', $friend->name)
             ->where('conversations.0.username', $friend->username)
+            ->where('conversations.0.last_message', null)
+            ->where('conversations.0.last_message_is_mine', false)
         );
 });
 
@@ -260,6 +312,7 @@ test('unread messages are counted and cleared when the thread opens', function (
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->where('conversations.0.unread_count', 2)
+            ->where('unreadMessagesCount', 2)
         );
 
     $this->actingAs($user)

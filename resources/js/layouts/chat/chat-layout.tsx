@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { ChatSidebar } from '@/components/chat/chat-sidebar';
+import { MobileTabBar } from '@/components/mobile-tab-bar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import type { ConversationPartner } from '@/types/chat';
 
@@ -20,6 +21,7 @@ export default function ChatLayout({
 
             <SidebarInset className="min-w-0 overflow-hidden">
                 {children}
+                <MobileTabBar />
             </SidebarInset>
         </SidebarProvider>
     );

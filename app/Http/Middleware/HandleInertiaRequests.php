@@ -43,6 +43,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'pendingFriendRequestsCount' => $request->user()?->incomingFriendRequests()->count() ?? 0,
+            'unreadMessagesCount' => $request->user()?->receivedMessages()->whereNull('read_at')->count() ?? 0,
         ];
     }
 }

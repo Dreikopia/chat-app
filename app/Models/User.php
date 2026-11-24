@@ -160,6 +160,9 @@ class User extends Authenticatable implements PasskeyUser
      */
     public function conversations(): Collection
     {
+        /** @var array<int, Message> $latestMessages */
+        $latestMessages = [];
+
         $conversations = Message::query()
             ->with([
                 'sender:id,name,username,avatar_path,last_seen_at',
@@ -172,9 +175,15 @@ class User extends Authenticatable implements PasskeyUser
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->get()
-            ->map(fn (Message $message) => $message->sender_id === $this->id
-                ? $message->recipient
-                : $message->sender)
+            ->map(function (Message $message) use (&$latestMessages) {
+                $partner = $message->sender_id === $this->id
+                    ? $message->recipient
+                    : $message->sender;
+
+                $latestMessages[$partner->id] ??= $message;
+
+                return $partner;
+            })
             ->unique('id')
             ->values();
 
@@ -198,9 +207,21 @@ class User extends Authenticatable implements PasskeyUser
 
         return $conversations
             ->concat($friends)
-            ->map(function (User $user) use ($unreadCounts) {
+            ->map(function (User $user) use ($latestMessages, $unreadCounts) {
+                $latestMessage = $latestMessages[$user->id] ?? null;
+                $isMine = $latestMessage?->sender_id === $this->id;
+                $isDeleted = $latestMessage?->deleted_at !== null;
+
                 $user->setAttribute('unread_count', (int) ($unreadCounts[$user->id] ?? 0));
                 $user->setAttribute('is_active', $user->isActive());
+                $user->setAttribute(
+                    'last_message',
+                    $isDeleted && ! $isMine ? null : $latestMessage?->body,
+                );
+                $user->setAttribute('last_message_at', $latestMessage?->created_at?->toISOString());
+                $user->setAttribute('last_message_is_mine', $isMine);
+                $user->setAttribute('last_message_is_deleted', $isDeleted);
+                $user->setAttribute('last_message_is_read', $latestMessage?->read_at !== null);
 
                 return $user;
             })
