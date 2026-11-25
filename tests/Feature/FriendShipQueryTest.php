@@ -36,6 +36,11 @@ test('the friends page includes the friend avatar', function () {
         );
 });
 
+test('the friends page component file matches the case of the component name', function () {
+    expect(scandir(resource_path('js/pages/friends')))
+        ->toContain('index.tsx');
+});
+
 test('isFriendsWith is true for accepted friendships in either direction', function () {
     $user = User::factory()->create();
     $friend = User::factory()->create();

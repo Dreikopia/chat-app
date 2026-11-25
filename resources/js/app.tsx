@@ -23,7 +23,7 @@ void createInertiaApp({
             case name.startsWith('auth/'):
                 return AuthLayout;
             case name.startsWith('chat/'):
-            case name.startsWith('Friends/'):
+            case name.startsWith('friends/'):
                 return ChatLayout;
             case name.startsWith('settings/'):
                 return [AppLayout, SettingsLayout];
